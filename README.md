@@ -52,10 +52,15 @@
 
 ## Демо
 
-Полный путь от вопроса клиента до подтверждённой записи. Видео открывается прямо здесь, в браузере — плеер запустится по клику.
+Полный путь от вопроса клиента до подтверждённой записи.
 
-- ▶️ **[Демо на русском, 31 сек](https://github.com/wanchiko-studio/booking-agent-n8n/blob/main/demo-ru-31s.mp4)**
-- ▶️ [Демо на английском, 36 сек](https://github.com/wanchiko-studio/booking-agent-n8n/blob/main/demo-en-36s.mp4)
+**На русском (31 сек):**
+
+https://github.com/user-attachments/assets/f32aed6f-2873-407b-b8c8-648daf1c80cd
+
+**На английском (36 сек):**
+
+https://github.com/user-attachments/assets/bdbaf469-f7fc-4b0d-8460-c303b5f274ef
 
 ## Стек
 
