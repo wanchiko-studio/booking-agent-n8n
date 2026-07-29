@@ -1,0 +1,151 @@
+{
+  "name": "Wanchiko Booking Agent (demo)",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "chat-trigger-001",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are the front-desk assistant for [BUSINESS NAME], a [dental clinic] in [Dubai]. You handle customer messages on WhatsApp.\n\nRules:\n1. Detect the language the customer writes in and ALWAYS reply in that same language. Arabic in -> Arabic out. English in -> English out. Never switch on them.\n2. Be warm, brief, professional. 2-3 sentences per reply, like a real front desk. No walls of text.\n3. Your goal is to BOOK an appointment. To book you need three things: the customer's name, the service / reason for the visit, and a preferred day and time.\n4. Ask only for what's missing, one or two items at a time. Don't interrogate.\n5. As soon as you have name + reason + a specific day and time, call the \"Book_Appointment\" tool to create it. Turn vague times (\"tomorrow afternoon\") into a concrete time (e.g. 3:00 PM) and confirm that time with the customer.\n6. After booking, send ONE short confirmation: their name, the service, and the exact date and time, and tell them they'll get a reminder.\n7. If asked about prices or details you don't know, say the team will confirm exact pricing and offer to book them in. NEVER invent prices and NEVER promise treatment or medical outcomes.\n\nToday's date and time is {{ $now }}. Use it to turn \"today\", \"tomorrow\", and day names into real dates. Assume business hours 9:00 AM - 9:00 PM unless told otherwise. All times are local to [Dubai]."
+        }
+      },
+      "id": "ai-agent-001",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [520, 300]
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b:free",
+        "options": {}
+      },
+      "id": "openrouter-001",
+      "name": "OpenRouter Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [400, 520],
+      "credentials": {
+        "openRouterApi": {
+          "id": "REPLACE_WITH_YOUR_OPENROUTER_CRED",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "id": "memory-001",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [560, 520]
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Creates a confirmed appointment once you have the customer name, service, and a specific date and time.",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "mode": "list",
+          "value": "REPLACE_WITH_BASE_ID",
+          "cachedResultName": "n8n-leads base"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "list",
+          "value": "REPLACE_WITH_BOOKINGS_TABLE_ID",
+          "cachedResultName": "Bookings"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $fromAI('Name', 'Customer full name') }}",
+            "Service": "={{ $fromAI('Service', 'The service or reason for the visit') }}",
+            "DateTime": "={{ $fromAI('DateTime', 'Appointment date and time in ISO format') }}",
+            "Language": "={{ $fromAI('Language', 'The language the customer is writing in, e.g. Arabic or English') }}",
+            "Status": "Booked"
+          }
+        },
+        "options": {}
+      },
+      "id": "booking-tool-001",
+      "name": "Book_Appointment",
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [720, 520],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "REPLACE_WITH_YOUR_AIRTABLE_CRED",
+          "name": "Airtable PAT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "mode": "list",
+          "value": "REPLACE_WITH_BASE_ID",
+          "cachedResultName": "n8n-leads base"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "list",
+          "value": "REPLACE_WITH_TABLE1_ID",
+          "cachedResultName": "Table 1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Customer Message": "={{ $('When chat message received').item.json.chatInput }}",
+            "AI Reply": "={{ $json.output }}",
+            "Date": "={{ $now.toISO() }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "airtable-log-001",
+      "name": "Log to Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [780, 300],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "REPLACE_WITH_YOUR_AIRTABLE_CRED",
+          "name": "Airtable PAT"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [[{ "node": "AI Agent", "type": "main", "index": 0 }]]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [[{ "node": "AI Agent", "type": "ai_languageModel", "index": 0 }]]
+    },
+    "Simple Memory": {
+      "ai_memory": [[{ "node": "AI Agent", "type": "ai_memory", "index": 0 }]]
+    },
+    "Book_Appointment": {
+      "ai_tool": [[{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]]
+    },
+    "AI Agent": {
+      "main": [[{ "node": "Log to Airtable", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}
