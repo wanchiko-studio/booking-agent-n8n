@@ -52,8 +52,10 @@
 
 ## Демо
 
-- `demo-en-36s.mp4` — полный путь от вопроса до подтверждённой записи (EN)
-- `demo-ru-31s.mp4` — то же на русском
+Полный путь от вопроса клиента до подтверждённой записи. Видео открывается прямо здесь, в браузере — плеер запустится по клику.
+
+- ▶️ **[Демо на русском, 31 сек](https://github.com/wanchiko-studio/booking-agent-n8n/blob/main/demo-ru-31s.mp4)**
+- ▶️ [Демо на английском, 36 сек](https://github.com/wanchiko-studio/booking-agent-n8n/blob/main/demo-en-36s.mp4)
 
 ## Стек
 
